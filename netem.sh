@@ -41,6 +41,7 @@ while [[ -n "$1" ]] ; do
             ;;
         '--duplicate')
             duplicate="$2"
+            ;;
         '--cleanup')
             cleanup="true"
             shift 1
@@ -56,6 +57,8 @@ while [[ -n "$1" ]] ; do
 done
 
 if [ -z "$nic" ] ; then
+    usage
+    exit -1
 fi
 
 # remove all rules if any
@@ -72,12 +75,11 @@ netem_opts=''
 [ -n "$netem_opts" ] && netem_opts+=" "
 [ -n "$corrupt" ] && netem_opts+="corrupt ${corrupt}%"
 [ -n "$netem_opts" ] && netem_opts+=" "
-duplicate
 [ -n "$duplicate" ] && netem_opts+="duplicate ${duplicate}%"
 
 rate_opts=''
 if [ -n "$rate" ] ; then
-    rate_opts+="rate ${rate}mbit burst 32kbit"
+    rate_opts+="rate ${rate}mbit burst 32kbit limit 3000"
 fi
 
 if [[ -z "$netem_opts" && -z "$rate_opts" ]]  ; then 
@@ -92,3 +94,5 @@ tc qdisc add dev $nic root handle 1:0 netem $netem_opts
 if [ -n "$rate_opts" ] ; then
     tc qdisc add dev $nic parent 1:1 handle 10: tbf $rate_opts
 fi
+
+tc qdisc show dev $nic
