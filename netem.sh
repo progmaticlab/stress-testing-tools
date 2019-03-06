@@ -4,8 +4,8 @@ my_file="$(readlink -e "$0")"
 my_dir="$(dirname $my_file)"
 
 function usage(){
-    echo "Options:"
-    echo -e "--nic <nic>        # interface name (mandatory)\n" \
+    echo -e "Options:\n" \
+         "--nic <nic>           # interface name (mandatory)\n" \
          "[--rate 100]          # rate in mbs\n" \
          "[--delay 100]         # delay in ms\n" \
          "[--loss 10]           # packet loss in %\n" \
@@ -62,9 +62,10 @@ if [ -z "$nic" ] ; then
 fi
 
 # remove all rules if any
-tc qdisc del dev $nic root || true
+tc qdisc del dev $nic root >/dev/null 2>&1 || true
 
 if [ -n "$cleanup" ] ; then
+    tc qdisc show dev $nic
     exit
 fi
 
